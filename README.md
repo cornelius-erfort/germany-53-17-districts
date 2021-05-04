@@ -4,7 +4,7 @@ Calculating conversion tables of (West) German districts (Landkreise und kreisfr
 
 ## Author information
 
-**Cornelius Erfort*
+*Cornelius Erfort*
 
 Humboldt University Berlin
 
