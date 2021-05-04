@@ -9,6 +9,7 @@ Calculating conversion tables of (West) German districts (Landkreise und kreisfr
 Humboldt University Berlin
 
 Department of Social Sciences
+<br>
 Chair of Comparative Political Behavior
 
 Unter den Linden 6, 10099 Berlin, Germany
