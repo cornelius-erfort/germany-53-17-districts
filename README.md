@@ -6,8 +6,7 @@ In order to convert historic election results into the 2017 counties, I use geod
 
 This repository also contains the conversion tables of (West) German districts (Landkreise und kreisfreie Städte) since 1953. The columns correspond to the 2017 counties, whereas the rows correspond to the counties of the specific year.
 
-The final dataset "election-results-53-17.dta" contains the vote share for all major parties for each election since 1953. Counties are identified by an ID ("AGS"). The file "AGS-countynames-2017.dta" can be used to add the county names.
-
+The final dataset "election-results-53-17.dta" contains the vote share for all major parties for each election since 1953. Counties can be merged to other data on the county level using the ID (AGS, Allgemeiner Gemeindeschlüssel).
 
 ### Example: Recklinghausen
 
