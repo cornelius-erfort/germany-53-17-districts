@@ -443,10 +443,14 @@ for(year in munip_years) {
 # Creating the dataset
 ```{r dataset}
 
+# Prepare var names for pivoting
+names(results) <- str_replace_all(names(results), "\\.", "_")
+names(results) <- str_replace(names(results), "_(?=[:alpha:])", "-")
+
 save(results, file = "data/results-53-17.RData")
+load("data/results-53-17.RData")
 
 # Convert dataset to long format
-names(results) <- str_replace(names(results), "_(?=[:alpha:])", "-")
 results_long <- pivot_longer(results, cols = 3:ncol(results))
 
 # Add year var
@@ -463,17 +467,13 @@ results_long <- pivot_longer(results_long, cols = names(results_long)[!str_detec
 
 results_long <- merge(results_long, counties_17@data %>% select(c(AGS, GEN)) %>% dplyr::rename("countyname" = GEN), all.x = T, by = "AGS")
 
-
-
 save(results_long, file = "election-results-53-17.RData")
 
 # Make varnames compatible with Stata
 names(results_long) <- names(results_long) %>% str_replace_all("(_)|(-)|(\\.)", "")
-write_dta(results_long %>% select(-c(countyname)), "election-results-53-17.dta")
-write_dta(counties_17@data %>% select(c(AGS, GEN)),  "AGS-countynames-2017.dta")
+write_dta(results_long, "election-results-53-17.dta")
 
 load("election-results-53-17.RData")
-
 
 ```
 
