@@ -20,7 +20,7 @@ In order to demonstrate the logic behind the conversion, the following image ill
 The following map shows the 1953 West German counties. The color shading indicates the size of the largest chunk of old county that was incorporated into a new county. 100% or "dark green" signifies that the entire county was incorporated into a new one. Smaller percentages indicate that the county was broken up into smaller fragments with negative consequences for the validity of the measurement.
 
 *Conversion of 1953 into 2017 counties: Share of largest coherent part of old county in new county*
-<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/coverage_map_1953-2017.png" width="80%">
+<img src="https://raw.githubusercontent.com/cornelius-erfort/germany-53-17-districts/main/coverage_map_1953-2017.png" width="80%">
 
 ### Correlation of registered voters
 
