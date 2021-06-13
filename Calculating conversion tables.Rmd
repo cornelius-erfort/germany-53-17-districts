@@ -551,8 +551,8 @@ ggplot() +
                    box.padding = 3, size = 3, segment.size = .25,  min.segment.length = .1, point.padding = 1, max.overlaps = 100, alpha = .5
                             ) +
 
-  ggsave("conversion_example.pdf", device = cairo_pdf, width = 5*2^.5, height = 5) +
-  ggsave("conversion_example.png", device = png, width = 1500*2^.5, height = 1500, res = 300, limitsize = F)
+  ggsave("plots/conversion_example.pdf", device = cairo_pdf, width = 5*2^.5, height = 5) +
+  ggsave("plots/conversion_example.png", device = png, width = 1500*2^.5, height = 1500, res = 300, limitsize = F)
 
 
 # Coverage
@@ -564,17 +564,17 @@ ggplot() +
   geom_polygon(data = counties_53 %>% fortify %>% join(counties_53@data, by = "id"), aes(long, lat, group = group, fill = max_intersect
 ), size = .1, color = "white") +
   scale_fill_gradient(low = "dark red", high = "dark green", na.value = "dark green") +
-    ggsave("coverage_map_1953-2017.pdf", device = cairo_pdf, width = 4.5, height = 5) +
-    ggsave("coverage_map_1953-2017.png", device = png, width = 1500*4.5/5, height = 1500, res = 300, limitsize = F)
+    ggsave("plots/coverage_map_1953-2017.pdf", device = cairo_pdf, width = 4.5, height = 5) +
+    ggsave("plots/coverage_map_1953-2017.png", device = png, width = 1500*4.5/5, height = 1500, res = 300, limitsize = F)
 
-png(file = "corrgram_registered_voters.png", width = 3000*2^0.5, height = 3000, res = 300)
+png(file = "plots/corrgram_registered_voters.png", width = 3000*2^0.5, height = 3000, res = 300)
 corrgram(results[, names(results)  %>% str_subset("(reg)") %>% sort][, c(6:length(names(results)  %>% str_subset("(reg)")), 1:5)], order=FALSE,
          upper.panel=panel.cor, text.panel=panel.txt,
          diag.panel=panel.minmax)
 dev.off()
 
 
-png(file = "corrgram_CDU.png", width = 3000*2^0.5, height = 3000, res = 300)
+png(file = "plots/corrgram_CDU.png", width = 3000*2^0.5, height = 3000, res = 300)
 corrgram(results[, names(results)  %>% str_subset("(CDU)") %>% sort][, c(6:length(names(results)  %>% str_subset("(reg)")), 1:5)], order=FALSE, 
          upper.panel=panel.cor, text.panel=panel.txt,
          diag.panel=panel.minmax)
