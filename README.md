@@ -13,28 +13,28 @@ The final dataset "election-results-53-17.dta" contains the vote share for all m
 In order to demonstrate the logic behind the conversion, the following image illustrates the conversion of 1953 counties to the 2017 county "Recklinghausen" (in red). We can see that most 1953 counties were almost entirely merged into the new county. Recklinghausen (2017) is mostly made up of the counties Recklinghausen, Stadt (1953) and Recklinghausen (1953).  Only small fractions of other adjacent counties were added to the newly formed county. This is a pattern that can be observed throughout West Germany: tow or mroe smaller counties are merged into larger ones, often cities and the surrunding rural areas are combined. 
 
 *Example of conversion of old into new counties for the county "Recklinghausen*
-<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/conversion_example.png" width="80%">
+<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/plots/conversion_example.png" width="80%">
 
 ## Measurement validity
 
 The following map shows the 1953 West German counties. The color shading indicates the size of the largest chunk of old county that was incorporated into a new county. 100% or "dark green" signifies that the entire county was incorporated into a new one. Smaller percentages indicate that the county was broken up into smaller fragments with negative consequences for the validity of the measurement.
 
 *Conversion of 1953 into 2017 counties: Share of largest coherent part of old county in new county*
-<img src="https://raw.githubusercontent.com/cornelius-erfort/germany-53-17-districts/main/coverage_map_1953-2017.png" width="80%">
+<img src="https://raw.githubusercontent.com/cornelius-erfort/germany-53-17-districts/main/plots/coverage_map_1953-2017.png" width="80%">
 
 ### Correlation of registered voters
 
 The following graph shows the correlation of registered voters over time. There seem to be no sudden changes in the size of the electorate suggesting that the conversion works quite well.
 
 *Correlation of the number of registered voters over time*
-<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/corrgram_registered_voters.png" width="80%">
+<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/plots/corrgram_registered_voters.png" width="80%">
 
 ### Correlation of CDU/CSU vote share
 
 The same applies to the correlation of the CDU/CSU vote share.
 
 *Correlation of the CDU/CSU vote share over time*
-<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/corrgram_CDU.png" width="80%">
+<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/plots/corrgram_CDU.png" width="80%">
 
 
 
