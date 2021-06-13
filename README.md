@@ -13,15 +13,25 @@ The final dataset "election-results-53-17.dta" contains the vote share for all m
 
 In order to demonstrate the logic behind the conversion, the following image illustrates the conversion of 1953 counties to the 2017 county "Recklinghausen" (in red). We can see that most 1953 counties were almost entirely merged into the new county. Recklinghausen (2017) is mostly made up of the counties Recklinghausen, Stadt (1953) and Recklinghausen (1953).  Only small fractions of other adjacent counties were added to the newly formed county. This is a pattern that can be observed throughout West Germany: tow or mroe smaller counties are merged into larger ones, often cities and the surrunding rural areas are combined. 
 
-
-
-*Example of conversion of old into new counties*
+*Example of conversion of old into new counties for the county "Recklinghausen*
 <img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/conversion_example.png" width="80%">
 
-conversion_example.png
 
-corrgram_registered_voters.png
-corrgram_CDU.png
+### Correlation of registered voters
+
+The following graph shows the correlation of registered voters over time. There seem to be no sudden changes in the size of the electorate suggesting that the conversion works quite well.
+
+*Correlation of the number of registered voters over time*
+<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/corrgram_registered_voters.png" width="80%">
+
+### Correlation of CDU/CSU vote share
+
+The same applies to the correlation of the CDU/CSU vote share.
+
+*Correlation of the CDU/CSU vote share over time*
+<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/corrgram_CDU.png" width="80%">
+
+
 
 
 
