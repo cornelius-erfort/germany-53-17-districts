@@ -565,7 +565,7 @@ ggplot() +
 ), size = .1, color = "white") +
   scale_fill_gradient(low = "dark red", high = "dark green", na.value = "dark green") +
     ggsave("coverage_map_1953-2017.pdf", device = cairo_pdf, width = 4.5, height = 5) +
-      ggsave("coverage_map_1953-2017.png", device = png, width = 4.5, height = 5)
+    ggsave("coverage_map_1953-2017.png", device = png, width = 1500*4.5/5, height = 1500, res = 300, limitsize = F)
 
 png(file = "corrgram_registered_voters.png", width = 3000*2^0.5, height = 3000, res = 300)
 corrgram(results[, names(results)  %>% str_subset("(reg)") %>% sort][, c(6:length(names(results)  %>% str_subset("(reg)")), 1:5)], order=FALSE,
