@@ -27,7 +27,7 @@ The following map shows the 1953 West German counties. The color shading indicat
 The following graph shows the correlation of registered voters over time. There seem to be no sudden changes in the size of the electorate suggesting that the conversion works quite well.
 
 *Correlation of the number of registered voters over time*
-<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/corrgram_registered_voters.png" width="80%">
+<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/plots/corrgram_registered_voters.png" width="80%">
 
 ### Correlation of CDU/CSU vote share
 
