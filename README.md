@@ -16,7 +16,7 @@ In order to demonstrate the logic behind the conversion, the following image ill
 
 
 *Example of conversion of old into new counties*
-<img src="https://github.com/cornelius-erfort/scripts-issue-agendas/raw/main/plots/agg_eval_compare_facet.png" width="80%">
+<img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/conversion_example.png" width="80%">
 
 conversion_example.png
 
