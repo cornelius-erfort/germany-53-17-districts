@@ -2,7 +2,7 @@
 
 This repository provides historic, comparable county-level election results for West Germany. The final dataset contains estimates for the vote share for each election since 1953 (within the boundaries of the 2017 counties). The conversion of past into current counties benefits from the way that German counties were modified: Usually two or more old counties were merged entirely into a new one.
 
-In order to convert historic election results into the 2017 counties, I use geodata. More specifically, I calculate the share of historic counties that lie within the boundaries of 2017 counties. Subsequently, I multiply these shares with the election results of each year.
+In order to convert historic election results into the 2017 counties, I use geodata. More specifically, I calculate the share of historic counties that lie within the boundaries of 2017 counties. Subsequently, I multiply these shares with the election results of each year. This requires the assumption, that the vote share was distributed equally throughout the county. Note that the geographical share of a county is different to the population share of a county. The geographical changes are likely greater than the actual population changes as county borders are more likely redrawn in rural, less densely populated areas.
 
 This repository also contains the conversion tables of (West) German districts (Landkreise und kreisfreie Städte) since 1953. The columns correspond to the 2017 counties, whereas the rows correspond to the counties of the specific year.
 
@@ -10,7 +10,7 @@ The final dataset "election-results-53-17.dta" contains the vote share for all m
 
 ### Example: Recklinghausen
 
-In order to demonstrate the logic behind the conversion, the following image illustrates the conversion of 1953 counties to the 2017 county "Recklinghausen" (in red). We can see that most 1953 counties were almost entirely merged into the new county. Recklinghausen (2017) is mostly made up of the counties Recklinghausen, Stadt (1953) and Recklinghausen (1953).  Only small fractions of other adjacent counties were added to the newly formed county. This is a pattern that can be observed throughout West Germany: tow or mroe smaller counties are merged into larger ones, often cities and the surrunding rural areas are combined. 
+In order to demonstrate the logic behind the conversion, the following image illustrates the conversion of 1953 counties to the 2017 county "Recklinghausen" (in red). We can see that most 1953 counties were almost entirely merged into the new county. Recklinghausen (2017) is made up of the former counties Recklinghausen, Stadt (1953), Recklinghausen (1953), Gladbeck (1953), and Castrop-Rauxel (1953).  For each of these counties, more than 90% of the former county area is now part of the new county. Only small fractions of other adjacent counties were added to the newly formed county. This is a pattern that can be observed throughout West Germany: tow or mroe smaller counties are merged into larger ones, often cities and the surrunding rural areas are combined. 
 
 *Example of conversion of old into new counties for the county "Recklinghausen*
 <img src="https://github.com/cornelius-erfort/germany-53-17-districts/raw/main/plots/conversion_example.png" width="80%">
