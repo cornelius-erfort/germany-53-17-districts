@@ -1,4 +1,4 @@
-# germany-53-17-districts
+Comparable historic election results for West Germany since 1953 in 2017 Landkreise boundaries
 
 This repository provides historic, comparable county-level election results for West Germany. The final dataset contains estimates for the vote share for each election since 1953 (within the boundaries of the 2017 counties). The conversion of past into current counties benefits from the way that German counties were modified: Usually two or more old counties were merged entirely into a new one.
 
