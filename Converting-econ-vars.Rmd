@@ -1,0 +1,399 @@
+---
+title: "Calculating conversion tables"
+author: "Cornelius Erfort"
+date: "5/17/2021"
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, tidy.opts=list(width.cutoff = 80), tidy = T, python.reticulate = F)
+```
+
+
+# Setting up
+
+This script requires the shape files and election results data which are not included on GitHub. All files except the shapefiles until 2009 are available for download online. See the below for more details.
+
+## Loading packages
+
+```{r packages, message=FALSE, warning=FALSE, results='hide'}
+
+packages <- c(
+  "stringr", "readxl", "dplyr", "tidyr", "plyr", "httr", "rvest", "urltools", "XML", "gnumeric", "english", "gsubfn", "zoo", "haven", "openxlsx", "lubridate", "ggplot2", "maptools", "sp", "rgdal", "tools", "readr", "spatstat", "rgeos", "corrgram", "ggrepel")
+
+lapply(packages[!(packages %in% rownames(installed.packages()))], install.packages)
+
+invisible(lapply(packages, require, character.only = T))
+
+```
+
+# 2017
+
+## Load 2017 county-level geodata
+
+In a first step, the shapefiles and election results for 2017 are loaded. The years until 1953 will be converted to 2017 counties.
+
+```{r 2017-geo}
+# Read shapefile
+counties_17 <- readOGR(dsn = "data/county shapefiles/2013+2017/Kreisgrenzen_2017_mit_Einwohnerzahl-shp", layer = "Kreisgrenzen_2017_mit_Einwohnerzahl", stringsAsFactors = FALSE) %>% spTransform(CRS("+proj=longlat +datum=WGS84")) 
+
+# Remove East Germany (including Berlin)
+counties_17 <- counties_17[counties_17$AGS < 11000, ] 
+
+# Plot map
+plot(counties_17)
+
+# Add rownumber
+counties_17@data$rownumber <- row(counties_17@data)[, 1]
+```
+
+
+## Geodata: 2004
+
+```{r 80-13-geo}
+year <- 2004
+
+  print(year)
+  
+  (shyear <- substr(year, 3, 4)) # 2-digit year
+
+  if (year >= 1990 & year <= 2009) counties_ <- readOGR(dsn = "data/county shapefiles/1990-2009/Federal Republic of Germany 1990-2009", layer = str_c("Germany_", ifelse(year == 2004, "2004_06", ifelse(year == 2002, "2001_02", year)), ifelse(year == 1990, "_91", ""),"_v.1.0"), stringsAsFactors = FALSE) %>% spTransform(CRS("+proj=longlat +datum=WGS84")) # Read layer/shapefile
+  
+  # Make var AGS
+  counties_$AGS <- substr(counties_$KREIS_KENN, 1, 5)
+  
+  # Remove East Germany (including Berlin)
+  counties_ <- counties_[as.numeric(counties_$KREIS_KENN) < 11000000, ] 
+  rownames(counties_@data) <- NULL
+  
+  # Add rownumber
+  counties_@data$rownumber <- row(counties_@data)[, 1]
+
+  # Find intersections between year and 2017
+  intersections <- gIntersects(counties_17,counties_, byid = TRUE) # Matrix that indicates intersections
+  dim(intersections) # Dimensions (height x width)
+  
+  # Calculate intersection shares between year and 2017
+  intersection_shares <- matrix(nrow = nrow(intersections), ncol = ncol(intersections)) # Create matrix for intersection shares (how much of polygon A lies in polygon B)
+  # Go through all intersections and calculate areas
+  
+  if(file.exists("conversion tables/intersection_shares_05.RData")) file.copy("conversion tables/intersection_shares_05.RData", "conversion tables/intersection_shares_04.RData")
+  
+  if(!file.exists(str_c("conversion tables/intersection_shares_", shyear,".RData"))) { # Load if file already exists
+    for (new_shape in 1:ncol(intersections)) {
+      cat("o")
+      for(old_shape in which(intersections[, new_shape])) {
+        cat(".")
+        intersection <- gIntersection(counties_17[new_shape, ],  gBuffer(counties_[old_shape, ], byid=TRUE, width=0), checkValidity = T) %>% suppressWarnings()
+        intersection_shares[old_shape, new_shape] <- gArea(gIntersection(counties_17[new_shape, ], gBuffer(counties_[old_shape, ], byid=TRUE, width=0), checkValidity = T)) / gArea(counties_[old_shape, ]) # Area of intersection between "old" and 2017 counties divided by area of "old" counties
+      }
+    }
+    # Save intersection_shares
+    save(intersection_shares, file = str_c("conversion tables/intersection_shares_", shyear,".RData"))
+    
+  }
+  
+  # Create object for geodata for that year
+  assign(str_c("counties_", shyear), counties_)
+  cat("\n\n")
+  
+  # counties_04 <- counties_05
+
+
+```
+
+
+## Load unemployment data
+
+```{r econ-vars}
+
+
+sheet_names <- getSheetNames("econ-vars/unemp_kreise_8404.xlsx") %>% str_subset("[:digit:]{4}")
+
+if(!file.exists("econ-vars/unemp_kreise_8404.RDS")) {
+  unemployment <- data.frame()
+  for (i in 1:length(sheet_names)) {
+    cat(sheet_names[i], " ... ")
+    kreis_data <- read.xlsx("econ-vars/unemp_kreise_8404.xlsx", sheet = sheet_names[i], startRow  = 8) %>%
+      mutate(month = sheet_names[i])
+    unemployment <- rbind.fill(unemployment, kreis_data)
+  }
+  names(unemployment)[1:2] <- c("AGS", "county_name")
+  names(unemployment) <- str_remove_all(names(unemployment), "-.")
+  
+  unemployment$year <- str_extract(unemployment$month, "[:digit:]{4}")
+  unemployment <- filter(unemployment, !is.na(unemployment$AGS))
+  unemployment$AGS <- unemployment$AGS %>% str_remove("000$")
+  
+  unemployment$date <- str_c("01.", unemployment$month) %>% dmy()
+  
+  saveRDS(unemployment, file = "econ-vars/unemp_kreise_8404.RDS")
+  
+} else unemployment <- readRDS("econ-vars/unemp_kreise_8404.RDS")
+
+# unemployment <- filter(unemployment, year %in% munip_years)
+
+# unemployment <- filter(unemployment, year == 1984)
+
+
+
+
+```
+
+
+### Projecting all unemployment data (all 2004 counties) onto 2017
+
+```{r project}
+# This is adapted from vote data, so the object names may be confusing
+
+
+# Go through years
+unemployment_17 <- data.frame()
+for(month in unique(unemployment$date)) {
+  
+  month <- as.Date(month, origin = "1970-01-01")
+  print(month)
+  
+  # (shyear <- substr(year, 3, 4)) # 2-digit year
+  
+  # Load geodata and vote results for that year
+  counties_ <- get(str_c("counties_05"))
+  unemployment_ <- unemployment[unemployment$date == month, ]
+  
+  # Add results to geodata
+  counties_@data <- merge(counties_@data, unemployment_, by = "AGS", all.x = T)
+  
+  # Bring original order
+  counties_ <- counties_[order(counties_@data$rownumber), ]
+  
+  # Load intersection shares
+  load(str_c("conversion tables/intersection_shares_04.RData"))
+  
+  # Construct hypothetical results by 2017 counties
+  t_results <- data.frame(date = month,
+                          AGS = counties_17@data$AGS,
+                            Insgesamt = colSums(counties_@data$Insgesamt * intersection_shares, na.rm = T),
+                            Quote.auf.abh..EP = colSums(counties_@data$Quote.auf.abh..EP * intersection_shares, na.rm = T))
+                              
+  if(any(!is.na(counties_@data$Frauen))) t_results$Frauen = colSums(counties_@data$Frauen * intersection_shares, na.rm = T)
+  if(any(!is.na(counties_@data$Ausländer))) t_results$Ausländer = colSums(counties_@data$Ausländer * intersection_shares, na.rm = T)
+  if(any(!is.na(counties_@data$unter.25.Jahre))) t_results$unter.25.Jahre = colSums(counties_@data$unter.25.Jahre * intersection_shares, na.rm = T)
+  if(any(!is.na(counties_@data$Langzeitarbeitslose))) t_results$Langzeitarbeitslose = colSums(counties_@data$Langzeitarbeitslose * intersection_shares, na.rm = T)
+  if(any(!is.na(counties_@data$arbeitsl..Teilzeitkräfte %>% as.numeric()))) t_results$arbeitsl..Teilzeitkräfte = colSums(as.numeric(counties_@data$arbeitsl..Teilzeitkräfte) * intersection_shares, na.rm = T)
+  if(any(!is.na(counties_@data$arbeitsl..Schwerbehinderte %>% as.numeric()))) t_results$arbeitsl..Schwerbehinderte = colSums(as.numeric(counties_@data$arbeitsl..Schwerbehinderte) * intersection_shares, na.rm = T)
+   
+  
+  # Write year in varnames
+  # names(t_results)[-1] <- str_c(names(t_results)[-1], ".", shyear)
+  
+  # Make vote shares
+  # t_results[, names(t_results) %>% str_subset("(CDU)|(CSU)|(SPD)|(FDP)|(GRÜNE)|(LINKE)|(PDS)|(AfD)")] <- apply(t_results[, names(t_results) %>% str_subset("(CDU)|(CSU)|(SPD)|(FDP)|(GRÜNE)|(LINKE)|(PDS)|(AfD)")], MARGIN = 2, FUN = function (x) x / t_results[, names(t_results) %>% str_subset("valid_votes")])
+  
+  # Add this year to all results dataframe  
+  # results <- merge(results, t_results, by = "AGS", all = T)
+  
+  # Bind to all data
+  unemployment_17 <- rbind.fill(unemployment_17, t_results)
+}
+
+unemployment8404_17 <- unemployment_17
+saveRDS(unemployment8404_17, file = "econ-vars/unemployment8404_17.RDS")
+
+
+
+```
+
+## Load the GDP/BIP data
+
+```{r}
+
+(sheet_names <- getSheetNames("econ-vars/bip_kreis_9219.xlsx") %>% str_subset("^[:digit:]"))
+
+if(!file.exists("econ-vars/bip_kreis_9219.RDS")) {
+  gdp_data <- data.frame(AGS = character(), county_name = character(), year = numeric())
+  for (i in 1:length(sheet_names)) {
+    cat(sheet_names[i], " ... ")
+    var_name <- filter(read.xlsx("econ-vars/bip_kreis_9219.xlsx", sheet = sheet_names[i], rows  = 1:2, colNames = F), !is.na(X1))
+    var_name <- var_name[1:nrow(var_name), ]  %>% str_c(collapse = " ")
+    if(var_name %in% names(gdp_data)) next
+
+    kreis_data <- read.xlsx("econ-vars/bip_kreis_9219.xlsx", sheet = sheet_names[i], startRow  = 5) 
+    kreis_data$`Regional-schlüssel`[kreis_data$`Regional-schlüssel` == "02"] <- "02000"
+    kreis_data <- kreis_data[str_length(kreis_data$`Regional-schlüssel`) == 5, ]
+    kreis_data <- select(kreis_data, c("Regional-schlüssel", Gebietseinheit, 9:35))
+    
+    names(kreis_data)[1:2] <- c("AGS", "county_name")
+    
+    kreis_data[, 3:29] <- apply(kreis_data[, 3:29], MARGIN = 2, FUN = as.numeric)
+    
+    kreis_data <- pivot_longer(kreis_data, cols = 3:29, names_to = "year", values_to = var_name)
+    
+    
+    gdp_data <- merge(gdp_data, kreis_data, by = c("AGS", "county_name", "year"), all = T)
+  }
+  
+  gdp_data <- filter(gdp_data, !is.na(AGS))
+  
+  saveRDS(gdp_data, file = "econ-vars/bip_kreis_9219.RDS")
+  
+} else gdp_data <- readRDS("econ-vars/bip_kreis_9219.RDS")
+
+# This is already comparable with 2017 counties!
+
+```
+
+
+## Load the disposable income data
+
+```{r}
+
+(sheet_names <- getSheetNames("econ-vars/disp_inc_kreis_9219.xlsx") %>% str_subset("^[:digit:]"))
+
+if(!file.exists("econ-vars/disp_inc_kreis_9219.RDS")) {
+  disp_inc_data <- data.frame(AGS = character(), county_name = character(), year = numeric())
+  for (i in 1:length(sheet_names)) {
+    cat(sheet_names[i], " ... ")
+    var_name <- filter(read.xlsx("econ-vars/disp_inc_kreis_9219.xlsx", sheet = sheet_names[i], rows  = 1:2, colNames = F), !is.na(X1))
+    var_name <- var_name[1:nrow(var_name), ]  %>% str_c(collapse = " ")
+    if(var_name %in% names(disp_inc_data)) next
+
+    kreis_data <- read.xlsx("econ-vars/disp_inc_kreis_9219.xlsx", sheet = sheet_names[i], startRow  = 5) 
+    kreis_data$`Regional-schlüssel`[kreis_data$`Regional-schlüssel` == "02"] <- "02000"
+    kreis_data <- kreis_data[str_length(kreis_data$`Regional-schlüssel`) == 5, ]
+    kreis_data <- select(kreis_data, c("Regional-schlüssel", Gebietseinheit, 9:32))
+    
+    names(kreis_data)[1:2] <- c("AGS", "county_name")
+    
+    kreis_data[, 3:26] <- apply(kreis_data[, 3:26], MARGIN = 2, FUN = as.numeric)
+    
+    kreis_data <- pivot_longer(kreis_data, cols = 3:26, names_to = "year", values_to = var_name)
+    
+    
+    disp_inc_data <- merge(disp_inc_data, kreis_data, by = c("AGS", "county_name", "year"), all = T)
+  }
+  
+  disp_inc_data <- filter(disp_inc_data, !is.na(AGS))
+  
+  saveRDS(disp_inc_data, file = "econ-vars/disp_inc_kreis_9219.RDS")
+  
+} else disp_inc_data <- readRDS("econ-vars/disp_inc_kreis_9219.RDS")
+
+```
+
+
+
+
+
+
+
+
+
+
+# Sources
+## Shapefiles
+
+**1953-2009**
+MPIDR [Max Planck Institute for Demographic Research] and CGG [Chair for Geodesy and Geoinformatics, University of Rostock] 2011: MPIDR Population History GIS Collection (partly based on Bundesamt für Kartographie und Geodäsie 2011) – Rostock.
+
+Bundesamt für Kartographie und Geodäsie 2011: VG 2500 Verwaltungsgebiete 1:2 500 000. Stand 01.01.2009 – Frankfurt am Main.
+
+**2013**
+GeoBasis-DE / Bundesamt für Kartographie und Geodäsie (BKG) 2013: Verwaltungsgebiete 1 : 250 000 VG250.
+https://hub.arcgis.com/datasets/esri-de-content::kreisgrenzen-2013?geometry=-20.088%2C46.270%2C40.996%2C55.886
+
+**2017**
+GeoBasis-DE / Bundesamt für Kartographie und Geodäsie (BKG) 2017: Verwaltungsgebiete 1 : 250 000 VG250.
+https://hub.arcgis.com/datasets/b2e6d8854d9744ca88144d30bef06a76_1?geometry=-20.088%2C46.270%2C40.996%2C55.886
+
+**2020**
+GeoBasis-DE / Bundesamt für Kartographie und Geodäsie (BKG) 2020: Verwaltungsgebiete 1 : 250 000 VG250.
+License: dl-de/by-2-0 (www.govdata.de/dl-de/by-2-0)
+https://gdz.bkg.bund.de/index.php/default/digitale-geodaten/verwaltungsgebiete/verwaltungsgebiete-1-250-000-ebenen-stand-01-01-vg250-ebenen-01-01.html
+
+## Election results
+### County level
+
+**1953**
+Der Bundeswahlleiter 1953: Bundestagswahl 1953, Ergebnisse nach kreisfreien Städten und Landkreisen.
+https://www.bundeswahlleiter.de/dam/jcr/9d55fc40-22a5-43f2-9b50-0bd3ff3780fd/btw1953kreis.csv
+
+**1957**
+Der Bundeswahlleiter 1957: Bundestagswahl 1957, Ergebnisse nach kreisfreien Städten und Landkreisen.
+https://www.bundeswahlleiter.de/dam/jcr/4c84aa1b-4b75-43c5-bfc7-da240208451b/btw1957kreis.csv
+
+**1961**
+Der Bundeswahlleiter 1961: Bundestagswahl 1961, Ergebnisse nach kreisfreien Städten und Landkreisen.
+https://www.bundeswahlleiter.de/dam/jcr/d3927d97-7c88-4d9a-a08d-97f68a8ce9af/btw1961kreis.csv
+
+**1965**
+Der Bundeswahlleiter 1965: Bundestagswahl 1965, Ergebnisse nach kreisfreien Städten und Landkreisen.
+https://www.bundeswahlleiter.de/dam/jcr/6b2137a1-01e1-481e-a221-e4de19c588bd/btw1965kreis.csv
+
+**1969**
+Der Bundeswahlleiter 1969: Bundestagswahl 1969, Ergebnisse nach kreisfreien Städten und Landkreisen.
+https://www.bundeswahlleiter.de/dam/jcr/c5819a55-5a24-4f09-9845-d8f40da89208/btw1969kreis.csv
+
+**1972**
+Der Bundeswahlleiter 1972: Bundestagswahl 1972, Ergebnisse nach kreisfreien Städten und Landkreisen.
+https://www.bundeswahlleiter.de/dam/jcr/3a7bbc36-c3ff-4a07-aa7c-aec1f3aa05d6/btw1972kreis.csv
+
+**1976**
+Der Bundeswahlleiter 1976: Bundestagswahl 1976, Ergebnisse nach kreisfreien Städten und Landkreisen.
+https://www.bundeswahlleiter.de/dam/jcr/91e7563c-5149-42c6-8c48-e88390962cdc/btw1976kreis.csv
+
+### Municipality level
+
+**1980**
+Der Bundeswahlleiter 1980: Bundestagswahl 1980, Ergebnisse nach Gemeinden
+https://www.bundeswahlleiter.de/dam/jcr/bd5c49db-8d83-463b-bab4-630b418b99cf/btw80_wbz.zip
+
+**1983**
+Der Bundeswahlleiter 1983: Bundestagswahl 1983, Ergebnisse nach Wahlbezirken und Gemeinden.
+https://www.bundeswahlleiter.de/dam/jcr/8b384f87-bad0-4b99-a7a9-88af7f5f01d3/btw83_wbz.zip
+
+**1987**
+Der Bundeswahlleiter 1987: Bundestagswahl 1987, Ergebnisse nach Wahlbezirken.
+https://www.bundeswahlleiter.de/dam/jcr/7590fb53-3965-438b-a339-d63878bf0e64/btw87_wbz.zip
+
+**1990**
+Der Bundeswahlleiter 1990: Bundestagswahl 1990, Ergebnisse nach Wahlbezirken und Gemeinden.
+https://www.bundeswahlleiter.de/dam/jcr/f57480e9-f383-4782-9488-fae3d206a84c/btw90_wbz.zip
+
+**1994**
+Der Bundeswahlleiter 1994: Bundestagswahl 1994, Ergebnisse nach Wahlbezirken und Gemeinden.
+https://www.bundeswahlleiter.de/dam/jcr/538a1f46-4407-49b4-995b-02bd9e3a8399/btw94_wbz.zip
+
+**1998**
+Der Bundeswahlleiter 1998: Bundestagswahl 1998, Ergebnisse nach Wahlbezirken und Gemeinden.
+https://www.bundeswahlleiter.de/dam/jcr/e2063bc8-4827-4826-a2db-a6cae5d9cf15/btw98_wbz.zip
+
+**2002**
+Der Bundeswahlleiter 2002: Bundestagswahl 2002, Ergebnisse nach Wahlbezirken.
+https://www.bundeswahlleiter.de/dam/jcr/16a4f1b0-fbd6-4c79-b5a6-b2792ba6df72/btw02_wbz.zip
+
+**2005**
+Der Bundeswahlleiter 2005: Bundestagswahl 2005, Ergebnisse nach Wahlbezirken.
+https://www.bundeswahlleiter.de/dam/jcr/3a8aa53f-53a1-4ad9-938f-0aa52c18863d/btw05_wbz.zip
+
+**2009**
+Der Bundeswahlleiter 2009: Bundestagswahl 2009, Ergebnisse nach Wahlbezirken.
+https://www.bundeswahlleiter.de/dam/jcr/159344fc-d466-4d34-b432-25d7891ab09f/btw09_wbz.zip
+
+**2013**
+Der Bundeswahlleiter 2013: Bundestagswahl 2013, Ergebnisse nach Wahlbezirken.
+https://www.bundeswahlleiter.de/dam/jcr/0ad35576-0c4b-4fa5-85f5-284618b8fa25/btw13_wbz.zip
+
+**2017**
+Der Bundeswahlleiter 2017: Bundestagswahl 2017, Ergebnisse nach Wahlbezirken.
+https://www.bundeswahlleiter.de/dam/jcr/a2eef6bd-0225-447c-9943-7af0f46c94d1/btw17_wbz.zip
+
+## For details on redistricting see:
+
+**before 1990**
+https://de.wikipedia.org/wiki/Kreisreformen_in_der_Bundesrepublik_Deutschland_bis_1990
+
+**after 1990** 
+https://de.wikipedia.org/wiki/Kreisreformen_in_Deutschland_nach_1990
