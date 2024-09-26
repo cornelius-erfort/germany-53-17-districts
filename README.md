@@ -42,16 +42,13 @@ The same applies to the correlation of the CDU/CSU vote share.
 
 
 
-## Author information
+### Author
+- **Cornelius Erfort**  
+  Post-doctoral Researcher  
+  University of Witten/Herdecke  
+  Department of Philosophy, Politics, and Economics  
+  Alfred-Herrhausen-Straße 50, 58455 Witten, Germany  
+  [cornelius.erfort@uni-wh.de](mailto:cornelius.erfort@uni-wh.de)  
+  [ORCID: 0000-0001-8534-7748](https://orcid.org/0000-0001-8534-7748)
 
-*Cornelius Erfort*
-
-Humboldt University Berlin
-
-Department of Social Sciences
-<br>
-Chair of Comparative Political Behavior
-
-Unter den Linden 6, 10099 Berlin, Germany
-
-Email: cornelius.erfort@hu-berlin.de
+This work was supported by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) – 390285477/ GRK 2458.
